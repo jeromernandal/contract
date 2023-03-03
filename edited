@@ -5,7 +5,6 @@ pragma solidity ^0.8.0;
 import "erc721a/contracts/ERC721A.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
-
 /**
  * @dev Interface of the ERC165 standard, as defined in the
  * https://eips.ethereum.org/EIPS/eip-165[EIP].
@@ -1223,9 +1222,8 @@ abstract contract Ownable is Context {
 
 pragma solidity >=0.7.0 <0.9.0;
 
-contract NFB is ERC721Enumerable, Ownable {
+contract Test is ERC721Enumerable, Ownable {
   using Strings for uint256;
-  using MerkleProof for bytes32[];
 
   string baseURI;
   string public baseExtension = ".json";
@@ -1237,12 +1235,9 @@ contract NFB is ERC721Enumerable, Ownable {
   string public notRevealedUri;
   uint256 public numberOfAddressesWhitelisted;
 
-  function verifyProof(bytes32[] memory proof, bytes32 root, bytes32 leaf) public pure returns (bool) {
-      return MerkleProof.verify(proof, root, leaf);
-}
+ 
 
 
-  
 
   constructor(
     string memory _name,
