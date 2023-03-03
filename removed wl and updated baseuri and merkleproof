@@ -2,6 +2,10 @@
 
 // File: @openzeppelin/contracts/utils/introspection/IERC165.sol
 pragma solidity ^0.8.0;
+import "erc721a/contracts/ERC721A.sol";
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+
+
 /**
  * @dev Interface of the ERC165 standard, as defined in the
  * https://eips.ethereum.org/EIPS/eip-165[EIP].
@@ -1221,6 +1225,7 @@ pragma solidity >=0.7.0 <0.9.0;
 
 contract NFB is ERC721Enumerable, Ownable {
   using Strings for uint256;
+  using MerkleProof for bytes32[];
 
   string baseURI;
   string public baseExtension = ".json";
@@ -1232,6 +1237,9 @@ contract NFB is ERC721Enumerable, Ownable {
   string public notRevealedUri;
   uint256 public numberOfAddressesWhitelisted;
 
+  function verifyProof(bytes32[] memory proof, bytes32 root, bytes32 leaf) public pure returns (bool) {
+      return MerkleProof.verify(proof, root, leaf);
+}
 
 
   
@@ -1340,10 +1348,15 @@ contract NFB is ERC721Enumerable, Ownable {
     paused = _state;
   }
  
-  function withdraw() public payable onlyOwner {
 
-    (bool os, ) = payable(owner()).call{value: address(this).balance}("");
-    require(os);
+
+  function withdraw() public payable onlyOwner {
+      require(address(this).balance > 0, "No accumulated funds to withdraw");
+      (bool success, ) = payable(owner()).call{value: address(this).balance}("");
+      require(success, "Withdrawal failed");
+      bool os = success;
+      require(os, "Transfer failed");
+
 
   }
 }
