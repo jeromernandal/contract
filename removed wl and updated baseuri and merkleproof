@@ -1,10 +1,11 @@
-
  // SPDX-License-Identifier: MIT
 
 // File: @openzeppelin/contracts/utils/introspection/IERC165.sol
 pragma solidity ^0.8.0;
 
-import "erc721a/contracts/ERC721A.sol";
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+
+
 /**
  * @dev Interface of the ERC165 standard, as defined in the
  * https://eips.ethereum.org/EIPS/eip-165[EIP].
@@ -1223,8 +1224,10 @@ abstract contract Ownable is Context {
 pragma solidity >=0.7.0 <0.9.0;
 
 
+
 contract Tester is ERC721Enumerable, Ownable {
   using Strings for uint256;
+  
 
   string baseURI;
   string public baseExtension = ".json";
@@ -1235,7 +1238,13 @@ contract Tester is ERC721Enumerable, Ownable {
   bool public revealed = true;
 
 
-  
+ 
+
+    mapping(uint256 => MintData) public MintAmounts;
+
+  struct MintData {
+    uint256 MintAmount;
+  }
 
   constructor(string memory _name, string memory _symbol, string memory _baseURI) ERC721(_name, _symbol) {
     baseURI = _baseURI;
@@ -1248,6 +1257,11 @@ contract Tester is ERC721Enumerable, Ownable {
   function setBaseURI(string memory newBaseURI) public onlyOwner {
     baseURI = newBaseURI;
   }
+  bytes32 public root;
+
+    function verifyProof(bytes32[] memory proof, bytes32 leaf) public view returns (bool) {
+        return MerkleProof.verify(proof, root, leaf);
+    }
 
   
 
@@ -1263,18 +1277,22 @@ contract Tester is ERC721Enumerable, Ownable {
   }
 
 
-  function mint(uint256 _mintAmount) public payable {
-    uint256 supply = totalSupply();
-    require(!paused);
-    require(_mintAmount > 0);
-    require(_mintAmount <= maxMintAmount);
-    require(supply + _mintAmount <= maxSupply);
+function mint(uint256 _mintAmount) public payable {
+  uint256 supply = totalSupply();
+  require(!paused, "Minting is paused");
+  require(_mintAmount > 0, "Number of tokens to mint must be greater than zero");
+  require(_mintAmount <= maxMintAmount, "Number of tokens to mint exceeds the maximum limit");
+  require(supply + _mintAmount <= maxSupply, "Exceeds the maximum supply limit");
 
- 
-      require(msg.value >= cost * _mintAmount);
-    }
+  require(msg.value >= cost * _mintAmount, "Insufficient funds");
 
-  
+  for (uint256 i = 1; i <= _mintAmount; i++) {
+    _safeMint(msg.sender, supply + i);
+    MintAmounts[supply + i].MintAmount = _mintAmount;
+  }
+}
+
+
   
 
   function ownerMint(uint256 _mintAmount, address _to) public onlyOwner {
@@ -1285,7 +1303,7 @@ contract Tester is ERC721Enumerable, Ownable {
 
     for (uint256 i = 1; i <= _mintAmount; i++) {
       _safeMint(_to, supply + i);
-      
+      MintAmounts[supply + i].MintAmount = _mintAmount;
     }
   }
 
