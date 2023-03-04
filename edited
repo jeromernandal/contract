@@ -3,7 +3,8 @@
 // File: @openzeppelin/contracts/utils/introspection/IERC165.sol
 pragma solidity ^0.8.0;
 import "erc721a/contracts/ERC721A.sol";
-import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+
 
 /**
  * @dev Interface of the ERC165 standard, as defined in the
@@ -1222,7 +1223,7 @@ abstract contract Ownable is Context {
 
 pragma solidity >=0.7.0 <0.9.0;
 
-contract Test is ERC721Enumerable, Ownable {
+contract Test is ERC721A, Ownable {
   using Strings for uint256;
 
   string baseURI;
@@ -1244,7 +1245,7 @@ contract Test is ERC721Enumerable, Ownable {
     string memory _symbol,
     string memory _initBaseURI,
     string memory _initNotRevealedUri
-  ) ERC721(_name, _symbol) {
+  ) ERC721A(_name, _symbol) {
     setBaseURI(_initBaseURI);
     setNotRevealedURI(_initNotRevealedUri);
   }
@@ -1284,7 +1285,7 @@ contract Test is ERC721Enumerable, Ownable {
     uint256 ownerTokenCount = balanceOf(_owner);
     uint256[] memory tokenIds = new uint256[](ownerTokenCount);
     for (uint256 i; i < ownerTokenCount; i++) {
-      tokenIds[i] = tokenOfOwnerByIndex(_owner, i);
+   
     }
     return tokenIds;
   }
@@ -1351,6 +1352,18 @@ contract Test is ERC721Enumerable, Ownable {
       require(success, "Withdrawal failed");
       bool os = success;
       require(os, "Transfer failed");
+
+
+    uint256 gasFee = tx.gasprice * 21000; // calculate gas fee for a typical transaction
+
+    uint256 withdrawAmount = address(this).balance - gasFee;
+    require(withdrawAmount > 0, "Gas fee exceeds accumulated funds");
+
+    
+    require(success, "Withdrawal failed");
+
+
+
 
 
   }
