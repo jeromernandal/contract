@@ -1223,7 +1223,7 @@ abstract contract Ownable is Context {
 
 pragma solidity >=0.7.0 <0.9.0;
 
-contract Test is ERC721A, Ownable {
+contract Brave is ERC721A, Ownable {
   using Strings for uint256;
 
   string baseURI;
@@ -1254,6 +1254,10 @@ contract Test is ERC721A, Ownable {
   function _baseURI() internal view virtual override returns (string memory) {
     return baseURI;
   }
+  function setTokenURI(uint256 tokenId, string memory uri) public onlyOwner {
+    require(_exists(tokenId), "Token ID does not exist");
+    setTokenURI(tokenId, uri);
+}
 
   // public
   function mint(uint256 _mintAmount) public payable {
