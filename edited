@@ -1340,7 +1340,7 @@ function calculateDiscount(uint amount) public view returns (uint) {
 
 function purchase(uint amount) public payable {
     uint discount = calculateDiscount(amount);
-    uint totalCost = amount * price - discount;
+    uint totalCost = amount * cost - discount;
     require(msg.value >= totalCost, "Insufficient funds.");
     // process purchase and send NFT to user
 }
