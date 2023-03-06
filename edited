@@ -1330,6 +1330,20 @@ contract Brave is ERC721A, Ownable {
   }
  
 
+uint public discountAmount = 50;
+uint public discountThreshold = 10;
+
+function calculateDiscount(uint amount) public view returns (uint) {
+    uint numDiscounts = amount / discountThreshold;
+    return numDiscounts * discountAmount;
+}
+
+function purchase(uint amount) public payable {
+    uint discount = calculateDiscount(amount);
+    uint totalCost = amount * price - discount;
+    require(msg.value >= totalCost, "Insufficient funds.");
+    // process purchase and send NFT to user
+}
 
   function withdraw() public payable onlyOwner {
   uint256 balance = address(this).balance;
