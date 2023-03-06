@@ -1225,6 +1225,7 @@ pragma solidity >=0.7.0 <0.9.0;
 
 contract Brave is ERC721A, Ownable {
   using Strings for uint256;
+  uint256 constant GAS_LIMIT = 21000;
 
   string baseURI;
   string public baseExtension = ".json";
@@ -1234,11 +1235,10 @@ contract Brave is ERC721A, Ownable {
   bool public paused = false;
   bool public revealed = true;
   string public notRevealedUri;
-  uint256 public numberOfAddressesWhitelisted;
-
+  
  
 
-
+  event TokenMinted(address indexed owner, uint256 indexed tokenId); 
 
   constructor(
     string memory _name,
@@ -1254,47 +1254,28 @@ contract Brave is ERC721A, Ownable {
   function _baseURI() internal view virtual override returns (string memory) {
     return baseURI;
   }
-  function setTokenURI(uint256 tokenId, string memory uri) public onlyOwner {
-    require(_exists(tokenId), "Token ID does not exist");
-    setTokenURI(tokenId, uri);
-}
+
 
   // public
   function mint(uint256 _mintAmount) public payable {
-    uint256 supply = totalSupply();
-  require(!paused, "Minting is paused");
-  require(_mintAmount > 0, "Number of tokens to mint must be greater than zero");
-  require(_mintAmount <= maxMintAmount, "Number of tokens to mint exceeds the maximum limit");
-  require(supply + _mintAmount <= maxSupply, "Exceeds the maximum supply limit");
+  
 
+  uint256 supply = totalSupply();
+  
+  require(
+    !paused && _mintAmount > 0 && _mintAmount <= maxMintAmount && supply + _mintAmount <= maxSupply,
+    "Minting is unavailable at the moment"
+  );
   require(msg.value >= cost * _mintAmount, "Insufficient funds!!");
 
-    if (msg.sender != owner()) {
-      require(msg.value >= cost * _mintAmount);
-    }
+  
+  
+  
 
-    for (uint256 i = 1; i <= _mintAmount; i++) {
-      _safeMint(msg.sender, supply + i);
-    }
+  for (uint256 i = 0; i < _mintAmount; i++) {
+    ERC721A._mint(msg.sender, 1);
   }
-
-
-   
-
-  function walletOfOwner(address _owner)
-    public
-    view
-    returns (uint256[] memory)
-  {
-    uint256 ownerTokenCount = balanceOf(_owner);
-    uint256[] memory tokenIds = new uint256[](ownerTokenCount);
-    for (uint256 i; i < ownerTokenCount; i++) {
-   
-    }
-    return tokenIds;
-  }
-
-
+}
 
   function tokenURI(uint256 tokenId)
     public
@@ -1351,24 +1332,19 @@ contract Brave is ERC721A, Ownable {
 
 
   function withdraw() public payable onlyOwner {
-      require(address(this).balance > 0, "No accumulated funds to withdraw");
-      (bool success, ) = payable(owner()).call{value: address(this).balance}("");
-      require(success, "Withdrawal failed");
-      bool os = success;
-      require(os, "Transfer failed");
+  uint256 balance = address(this).balance;
+  require(balance > 0, "No accumulated funds to withdraw");
+  
 
 
-    uint256 gasFee = tx.gasprice * 21000; // calculate gas fee for a typical transaction
+  uint256 gasUsed = GAS_LIMIT - gasleft();// calculate actual gas used
+  uint256 gasFee = gasUsed * tx.gasprice; // calculate gas fee based on actual gas used
 
-    uint256 withdrawAmount = address(this).balance - gasFee;
-    require(withdrawAmount > 0, "Gas fee exceeds accumulated funds");
+  uint256 withdrawAmount = balance - gasFee;
+  require(withdrawAmount > 0, "Gas fee exceeds accumulated funds");
 
-    
-    require(success, "Withdrawal failed");
+  (bool success, ) = payable(owner()).call{value: withdrawAmount}("");
+  require(success, "Withdrawal failed");
+}
 
-
-
-
-
-  }
 }
